@@ -1,12 +1,20 @@
 import React from "react";
 import TripForm from "../components/TripForm";
+import Hero from "../components/Hero";
+import DestinationCarousel from "../components/DestinationCarousel";
 
 const Home = ({ setTrips }) => {
   return (
     <div className="bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-center pt-10">Trippy</h1>
+      {/* HERO */}
+      <Hero />
+      {/*Destination carousel */}
+      <DestinationCarousel />
 
-      <TripForm setTrips={setTrips} />
+      {/* FORM SECTION */}
+      <div id="plan" className="py-10">
+        <TripForm setTrips={setTrips} />
+      </div>
     </div>
   );
 };

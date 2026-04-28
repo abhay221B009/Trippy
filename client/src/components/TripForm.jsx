@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Trips from "../pages/Trips";
 
 const TripForm = ({ setTrips }) => {
   const [formData, setFormData] = useState({
@@ -48,30 +47,32 @@ const TripForm = ({ setTrips }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">
+    <div className="bg-gray-100 py-16 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Heading */}
+        <h2 className="text-3xl font-bold text-center mb-10">
           Plan Your Trip ✈️
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="grid md:grid-cols-3 gap-4">
           <input
             type="number"
             name="budget"
             placeholder="Budget (₹)"
             value={formData.budget}
             onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
           />
 
           <input
             type="text"
             name="interests"
-            placeholder="Interests (beach, food, adventure...)"
+            placeholder="Interests"
             value={formData.interests}
             onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
           />
 
@@ -81,21 +82,36 @@ const TripForm = ({ setTrips }) => {
             placeholder="Days"
             value={formData.days}
             onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
           />
+        </form>
 
+        {/* Button */}
+        <div className="mt-6 text-center">
           <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-semibold"
+            onClick={handleSubmit}
+            disabled={loading}
+            className={`px-8 py-3 rounded-lg font-semibold transition ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600 text-white"
+            }`}
           >
             {loading ? "Generating..." : "Generate Trip 🚀"}
           </button>
-        </form>
+        </div>
 
-        {/* RESULT */}
-        {result && (
-          <div className="mt-6 p-4 bg-gray-50 border rounded-lg text-center">
+        {/* Spinner */}
+        {loading && (
+          <div className="flex justify-center mt-4">
+            <div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+
+        {/* Result */}
+        {result && !loading && (
+          <div className="mt-8 p-4 bg-white border rounded-lg text-center">
             <p className="text-gray-700">{result}</p>
           </div>
         )}
