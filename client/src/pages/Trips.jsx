@@ -66,7 +66,7 @@ const Trips = ({ trips, setTrips }) => {
 
             {/* View Button */}
             <button
-              onClick={() => navigate(`/trips/${index}`)}
+              onClick={() => navigate(`/trips/${trip._id || index}`)}
               className="text-blue-500 font-medium border border-blue-500 px-3 py-1 rounded hover:bg-blue-500 hover:text-white transition"
             >
               View Details

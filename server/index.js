@@ -1,15 +1,23 @@
 require("dotenv").config();
 
 const express = require("express");
+const mongoose = require("mongoose");
 const cors = require("cors");
+const Trip = require("./models/Trip");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 
+// ✅ MongoDB connection
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connected ✅"))
+  .catch((err) => console.error("MongoDB error ❌", err));
+
 app.use(cors());
 app.use(express.json());
 
-// ✅ Root route (for testing)
+// ✅ Root route
 app.get("/", (req, res) => {
   res.send("Trippy backend is running");
 });
@@ -17,15 +25,7 @@ app.get("/", (req, res) => {
 // ✅ Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// ✅ Optional: list available models (debug)
-app.get("/models", async (req, res) => {
-  try {
-    const models = await genAI.listModels();
-    res.json(models);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// ❌ Removed unstable /models route
 
 // ✅ AI Route
 app.post("/generate-trip", async (req, res) => {
@@ -44,125 +44,123 @@ You are a smart travel planner.
 Plan a ${days}-day trip to ${destination} within ₹${budget}.
 User interests: ${interests}.
 
-Return ONLY JSON in this format:
+Return ONLY valid JSON in this format:
 
 {
   "destination": "${destination}",
-  "summary": "Short 1 line summary of trip vibe",
+  "summary": "1 line trip vibe",
   "itinerary": [
     {
       "day": "Day 1",
-      "title": "Short catchy title (e.g. Explore Old Delhi)",
+      "title": "Short catchy title",
       "activities": [
-        "Short action point",
-        "Short action point"
+        "Visit place (₹cost)",
+        "Do activity (₹cost)"
       ],
-      "food": ["food suggestions"],
-      "travel": "transport tip",
-      "expenses": "approx cost for the day in ₹"
+      "food": ["Dish (₹cost)", "Dish (₹cost)"],
+      "travel": "Transport with cost",
+      "estimated_cost": 1000
     }
   ]
 }
 
-Rules:
+RULES (STRICT):
 
-1. Output MUST be strictly valid JSON. No extra text, no explanation.
+1. Output MUST be valid JSON only. No text outside JSON.
 
-2. Structure:
-Each day must include:
+2. Each day MUST include:
 - day
-- title (short, catchy, experience-focused)
+- title
 - activities (array)
 - food (array)
 - travel (string)
-- estimated_cost (number in INR)
+- estimated_cost (number only)
 
 3. Activities:
-- Keep each activity short (5–10 words max)
-- Focus on actions (e.g., "Visit India Gate at sunset")
-- Each activity must include approximate cost in ₹ (realistic estimate)
-  Example: "Visit Red Fort (₹50 entry)"
+- Max 5–10 words each
+- Must include ₹ cost
+- Example: "Visit Red Fort (₹50)"
 
-4. Pricing:
-- Use realistic, budget-friendly Indian prices
-- Include:
-  • entry fees
-  • food cost range
-  • transport cost
-- If exact price unknown → give reasonable estimate (not vague)
+4. Food:
+- 2–3 local food items per day
+- Include approximate price
 
-5. Food:
-- Suggest 2–3 specific local food experiences per day
-- Include approximate price per item or meal
+5. Travel:
+- Mention transport (metro/auto/walk/scooter)
+- Include estimated cost
 
-6. Travel:
-- Mention practical transport (Metro, auto, walking, scooter)
-- Include cost estimate where possible
+6. Pricing:
+- Use realistic Indian prices
+- Budget-friendly suggestions
+- No luxury unless budget allows
 
 7. Daily Budget:
-- Add total estimated cost per day (₹)
-- Ensure it aligns with user’s total budget
-- estimated_cost is REQUIRED (must be number, not string)
-- If missing → regenerate internally
+- estimated_cost MUST be a number
+- Sum should roughly match total budget
 
-8. Budget Optimization:
-- Prioritize cost-effective options
-- Avoid luxury suggestions unless budget allows
+8. Experience Quality:
+- Balanced plan (travel + food + sightseeing)
+- Do NOT overload activities
 
-9. Experience Quality:
-- Balance sightseeing, food, and local experience
-- Avoid overcrowding too many activities in one day
-- Keep itinerary realistic and doable
-
-10. Clarity:
+9. Clarity:
 - No long sentences
 - No paragraphs
-- No generic phrases like “enjoy your time”
-- Output must be scannable
+- Keep everything short and scannable
 
-11. Summary:
-- Include a 1-line summary describing the trip vibe
+10. Summary:
+- One short line describing vibe
 
-12. Consistency:
-- Total trip cost should roughly match user's budget
-- Do not exceed budget significantly
+11. Consistency:
+- Keep total cost within budget range
 `;
 
-    // ✅ Use latest working model
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-flash", // ✅ kept same
     });
 
     const result = await model.generateContent(prompt);
 
-    // ✅ Correct async handling
-    const text = result.response.candidates[0].content.parts[0].text;
+    // ✅ Safe response extraction
+    const text =
+      result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     console.log("AI RAW RESPONSE:", text);
 
     // ✅ Extract JSON safely
     const match = text.match(/\{[\s\S]*\}/);
 
-    if (!match) {
-      return res.json({
-        destination,
-        itinerary: [text],
-      });
-    }
-
     let tripData;
 
     try {
-      tripData = JSON.parse(match[0]);
-    } catch (parseError) {
+      tripData = match ? JSON.parse(match[0]) : null;
+    } catch (err) {
+      tripData = null;
+    }
+
+    // ✅ Safe fallback (prevents UI crash)
+    if (!tripData || !tripData.itinerary) {
       return res.json({
         destination,
-        itinerary: [text],
+        summary: "Basic fallback plan",
+        itinerary: [
+          {
+            day: "Day 1",
+            title: "Explore locally",
+            activities: [text || "Explore nearby places"],
+            food: [],
+            travel: "",
+            estimated_cost: 0,
+          },
+        ],
+        budget,
+        days,
       });
     }
 
+    // ✅ Final response
     res.json({
       destination: tripData.destination || destination,
+      summary: tripData.summary || "",
       itinerary: tripData.itinerary || [],
       budget,
       days,
@@ -174,6 +172,40 @@ Each day must include:
       message: "AI failed",
       error: error.message,
     });
+  }
+});
+
+// ✅ Save trip API (validated)
+app.post("/save-trip", async (req, res) => {
+  try {
+    const { destination, itinerary } = req.body;
+
+    if (!destination || !itinerary) {
+      return res.status(400).json({ message: "Invalid trip data" });
+    }
+
+    const trip = await Trip.create(req.body);
+
+    res.json(trip);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Save failed" });
+  }
+});
+
+// ✅ Get all trips
+app.get("/trips", async (req, res) => {
+  const trips = await Trip.find().sort({ createdAt: -1 });
+  res.json(trips);
+});
+
+// ✅ Get single trip
+app.get("/trips/:id", async (req, res) => {
+  try {
+    const trip = await Trip.findById(req.params.id);
+    res.json(trip);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching trip" });
   }
 });
 

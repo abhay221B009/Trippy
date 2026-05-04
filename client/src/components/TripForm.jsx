@@ -70,27 +70,27 @@ const TripForm = ({ setTrips }) => {
   };
 
   // Save trip
-  const handleSaveTrip = () => {
+  const handleSaveTrip = async () => {
     if (!result) return;
 
-    const existing = JSON.parse(localStorage.getItem("trips")) || [];
+    try {
+      const response = await fetch("http://localhost:5000/save-trip", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(result),
+      });
 
-    const isDuplicate = existing.some(
-      (trip) =>
-        trip.destination === result.destination && trip.days === result.days,
-    );
+      const data = await response.json();
 
-    if (isDuplicate) {
-      alert("Trip already saved ✅");
-      return;
+      setTrips((prev) => [data, ...prev]);
+
+      alert("Trip saved successfully 💾");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save trip ❌");
     }
-
-    const updatedTrips = [...existing, result];
-
-    localStorage.setItem("trips", JSON.stringify(updatedTrips));
-    setTrips(updatedTrips);
-
-    alert("Trip saved successfully 💾");
   };
 
   return (

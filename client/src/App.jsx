@@ -8,8 +8,10 @@ import TripDetails from "./pages/TripDetails";
 const App = () => {
   const [trips, setTrips] = useState([]);
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("trips")) || [];
-    setTrips(saved);
+    fetch("http://localhost:5000/trips")
+      .then((res) => res.json())
+      .then((data) => setTrips(data))
+      .catch((err) => console.error(err));
   }, []);
 
   return (

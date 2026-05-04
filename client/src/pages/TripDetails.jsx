@@ -7,15 +7,11 @@ const TripDetails = ({ trips }) => {
   const [trip, setTrip] = useState(null);
 
   useEffect(() => {
-    // First try from props
-    if (trips && trips.length > 0) {
-      setTrip(trips[id]);
-    } else {
-      // Fallback from localStorage
-      const saved = JSON.parse(localStorage.getItem("trips")) || [];
-      setTrip(saved[id]);
-    }
-  }, [trips, id]);
+    fetch(`http://localhost:5000/trips/${id}`)
+      .then((res) => res.json())
+      .then((data) => setTrip(data))
+      .catch((err) => console.error(err));
+  }, [id]);
 
   if (!trip) {
     return <p className="text-center mt-10 text-gray-500">Loading trip...</p>;
