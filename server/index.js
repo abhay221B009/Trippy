@@ -115,7 +115,7 @@ RULES (STRICT):
 `;
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash", // ✅ kept same
+      model: "gemini-3-flash", // ✅ kept same
     });
 
     const result = await model.generateContent(prompt);

@@ -4,10 +4,23 @@ import { useNavigate } from "react-router-dom";
 const Trips = ({ trips, setTrips }) => {
   const navigate = useNavigate();
 
-  const handleDelete = (index) => {
-    const updated = trips.filter((_, i) => i !== index);
-    setTrips(updated);
-    localStorage.setItem("trips", JSON.stringify(updated));
+  // ✅ Delete from DB
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/trips/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error("Delete failed");
+      }
+
+      // Update UI
+      setTrips((prev) => prev.filter((trip) => trip._id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete ❌");
+    }
   };
 
   if (trips.length === 0) {
@@ -21,9 +34,9 @@ const Trips = ({ trips, setTrips }) => {
       <h2 className="text-4xl font-bold text-center mb-10">✈️ My Trips</h2>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {trips.map((trip, index) => (
+        {trips.map((trip) => (
           <div
-            key={index}
+            key={trip._id}
             className="bg-white rounded-xl shadow-md p-5 border border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
           >
             {/* Header */}
@@ -33,21 +46,21 @@ const Trips = ({ trips, setTrips }) => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDelete(index);
+                  handleDelete(trip._id);
                 }}
-                className="border border-red-500 p-2 rounded hover:bg-red-100 group transition flex items-center justify-center"
+                className="border border-red-500 p-2 rounded hover:bg-red-500 group transition flex items-center justify-center"
               >
                 <img
                   src="/delete.png"
                   alt="Delete"
-                  className="w-4 h-4 group-hover:focus"
+                  className="w-4 h-4 group-hover:invert"
                 />
               </button>
             </div>
 
             {/* Meta */}
             <p className="text-gray-500 text-sm mb-3">
-              {trip.days} days ₹{trip.budget}
+              {trip.days} days • ₹{trip.budget}
             </p>
 
             {/* Preview */}
@@ -66,7 +79,7 @@ const Trips = ({ trips, setTrips }) => {
 
             {/* View Button */}
             <button
-              onClick={() => navigate(`/trips/${trip._id || index}`)}
+              onClick={() => navigate(`/trips/${trip._id}`)}
               className="text-blue-500 font-medium border border-blue-500 px-3 py-1 rounded hover:bg-blue-500 hover:text-white transition"
             >
               View Details
