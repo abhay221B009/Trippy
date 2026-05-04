@@ -1,44 +1,79 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
-const Trips = ({ trips }) => {
+const Trips = ({ trips, setTrips }) => {
+  const navigate = useNavigate();
+
+  const handleDelete = (index) => {
+    const updated = trips.filter((_, i) => i !== index);
+    setTrips(updated);
+    localStorage.setItem("trips", JSON.stringify(updated));
+  };
+
+  if (trips.length === 0) {
+    return (
+      <p className="text-center mt-10 text-gray-500">No saved trips yet 😢</p>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h2 className="text-3xl font-bold text-center mb-8">My Trips</h2>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-6">
+      <h2 className="text-4xl font-bold text-center mb-10">✈️ My Trips</h2>
 
-      {trips.length === 0 ? (
-        <p className="text-center text-gray-500">No trips saved yet...</p>
-      ) : (
-        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-          {trips.map((trip, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl shadow-md p-5 hover:shadow-xl transition"
-            >
-              {/* Destination */}
-              <h3 className="text-xl font-semibold mb-2">
-                {trip.destination || "Trip"}
-              </h3>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {trips.map((trip, index) => (
+          <div
+            key={index}
+            className="bg-white rounded-xl shadow-md p-5 border border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-lg font-bold">{trip.destination}</h3>
 
-              {/* Meta info */}
-              <p className="text-gray-500 text-sm mb-3">
-                {trip.days} days • ₹{trip.budget}
-              </p>
-
-              {/* Itinerary preview */}
-              <ul className="text-sm text-gray-700 space-y-1">
-                {trip.itinerary?.slice(0, 2).map((item, i) => (
-                  <li key={i}>• {item}</li>
-                ))}
-              </ul>
-
-              {/* Button */}
-              <button className="mt-4 text-blue-500 hover:underline">
-                View Details →
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(index);
+                }}
+                className="border border-red-500 p-2 rounded hover:bg-red-100 group transition flex items-center justify-center"
+              >
+                <img
+                  src="/delete.png"
+                  alt="Delete"
+                  className="w-4 h-4 group-hover:focus"
+                />
               </button>
             </div>
-          ))}
-        </div>
-      )}
+
+            {/* Meta */}
+            <p className="text-gray-500 text-sm mb-3">
+              {trip.days} days ₹{trip.budget}
+            </p>
+
+            {/* Preview */}
+            <div className="text-sm text-gray-700 space-y-1 mb-4">
+              {trip.itinerary?.slice(0, 1).map((day, i) => (
+                <div key={i}>
+                  <p className="font-medium">{day.day}</p>
+                  <ul>
+                    {day.activities?.slice(0, 2).map((a, j) => (
+                      <li key={j}>• {a}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            {/* View Button */}
+            <button
+              onClick={() => navigate(`/trips/${index}`)}
+              className="text-blue-500 font-medium border border-blue-500 px-3 py-1 rounded hover:bg-blue-500 hover:text-white transition"
+            >
+              View Details
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
