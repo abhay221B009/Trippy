@@ -1,10 +1,12 @@
 import React, { useRef } from "react";
 
 const destinations = [
-  { name: "Goa", image: "/images/Goa.jpg", type: "beach" },
-  { name: "Manali", image: "/images/Manali.jpg", type: "mountain" },
   { name: "Prayagraj", image: "/images/Prayagraj.jpg", type: "Ghats" },
+  { name: "Goa", image: "/images/Goa.jpg", type: "beach" },
   { name: "Varanasi", image: "/images/Varanasi.jpg", type: "Ghats" },
+
+  { name: "Manali", image: "/images/Manali.jpg", type: "mountain" },
+
   { name: "Jaipur", image: "/images/Jaipur.jpg", type: "heritage" },
   { name: "Kerala", image: "/images/Kerala.jpg", type: "nature" },
   { name: "Ladakh", image: "/images/Ladakh.jpg", type: "adventure" },

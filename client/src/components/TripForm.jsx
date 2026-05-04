@@ -231,14 +231,14 @@ const TripForm = ({ setTrips }) => {
                 disabled={loading}
                 className="px-6 py-3 rounded-lg font-semibold bg-blue-500 text-white hover:bg-blue-600 transition"
               >
-                🔄 Re-Generate
+                Re-Generate
               </button>
 
               <button
                 onClick={handleSaveTrip}
                 className="px-6 py-3 rounded-lg font-semibold bg-green-500 text-white hover:bg-green-600 transition"
               >
-                💾 Save Trip
+                Save Trip
               </button>
             </div>
           </div>
