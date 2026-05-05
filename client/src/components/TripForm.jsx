@@ -8,6 +8,9 @@ const TripForm = ({ setTrips }) => {
     days: "",
   });
 
+  const API_URL =
+    import.meta.env.VITE_NEXT_PUBLIC_URL || "http://localhost:5000";
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
 
@@ -21,7 +24,7 @@ const TripForm = ({ setTrips }) => {
 
   // API call function (reusable)
   const fetchTrip = async () => {
-    const response = await fetch("http://localhost:5000/generate-trip", {
+    const response = await fetch(`${API_URL}/generate-trip`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -74,7 +77,7 @@ const TripForm = ({ setTrips }) => {
     if (!result) return;
 
     try {
-      const response = await fetch("http://localhost:5000/save-trip", {
+      const response = await fetch(`${API_URL}/save-trip`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
