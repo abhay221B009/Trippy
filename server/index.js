@@ -3,16 +3,32 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const { randomUUID } = require("crypto");
 const Trip = require("./models/Trip");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 
-// ✅ MongoDB connection
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected ✅"))
-  .catch((err) => console.error("MongoDB error ❌", err));
+let dbConnected = false;
+let tripsStore = [];
+const hasMongoUri = Boolean(process.env.MONGO_URI);
+const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY);
+
+if (hasMongoUri) {
+  mongoose
+    .connect(process.env.MONGO_URI)
+    .then(() => {
+      dbConnected = true;
+      console.log("MongoDB connected ✅");
+    })
+    .catch((err) => {
+      dbConnected = false;
+      console.error("MongoDB error ❌", err);
+      console.warn("Continuing with in-memory trip storage.");
+    });
+} else {
+  console.warn("MONGO_URI not set. Using in-memory trip storage only.");
+}
 
 app.use(cors());
 app.use(express.json());
@@ -22,10 +38,46 @@ app.get("/", (req, res) => {
   res.send("Trippy backend is running");
 });
 
-// ✅ Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+app.get("/favicon.ico", (req, res) => {
+  res.sendStatus(204);
+});
 
-// ❌ Removed unstable /models route
+const genAI = hasGeminiKey
+  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+  : null;
+
+const generateFallbackTrip = ({ destination, budget, interests, days }) => {
+  const numericBudget = Number(budget) || 1000;
+  const numericDays = Math.max(1, Number(days) || 1);
+  const dailyBudget = Math.max(200, Math.round(numericBudget / numericDays));
+  const summary = `A ${numericDays}-day ${interests} trip to ${destination}`;
+
+  const itinerary = Array.from({ length: numericDays }, (_, index) => ({
+    day: `Day ${index + 1}`,
+    title:
+      index === 0
+        ? `Explore ${destination}`
+        : `Discover more of ${destination}`,
+    activities: [
+      `Visit local highlights (₹${Math.round(dailyBudget * 0.3)})`,
+      `Enjoy a ${interests} activity (₹${Math.round(dailyBudget * 0.25)})`,
+    ],
+    food: [
+      `Local meal (₹${Math.round(dailyBudget * 0.2)})`,
+      `Street snack (₹${Math.round(dailyBudget * 0.15)})`,
+    ],
+    travel: `Local transport (₹${Math.round(dailyBudget * 0.15)})`,
+    estimated_cost: Math.max(100, Math.round(dailyBudget)),
+  }));
+
+  return {
+    destination,
+    summary,
+    itinerary,
+    budget: numericBudget,
+    days: numericDays,
+  };
+};
 
 // ✅ AI Route
 app.post("/generate-trip", async (req, res) => {
@@ -38,7 +90,10 @@ app.post("/generate-trip", async (req, res) => {
       return res.status(400).json({ message: "Missing fields" });
     }
 
-    const prompt = `
+    let tripData = null;
+    if (genAI) {
+      try {
+        const prompt = `
 You are a smart travel planner.
 
 Plan a ${days}-day trip to ${destination} within ₹${budget}.
@@ -114,60 +169,52 @@ RULES (STRICT):
 - Keep total cost within budget range
 `;
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash", // ✅ kept same
-    });
+        // const model = genAI.getGenerativeModel({
+        //   model: "gemini-2.5-flash",
+        // });
 
-    const result = await model.generateContent(prompt);
+        // const result = await model.generateContent(prompt);
+        // const text =
+        //   result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    // ✅ Safe response extraction
-    const text =
-      result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        console.log("Gemini RAW RESPONSE:");
 
-    console.log("AI RAW RESPONSE:", text);
+        const ai = new GoogleGenAI({
+          apiKey: process.env.GEMINI_API_KEY, // make sure you set this
+        });
 
-    // ✅ Extract JSON safely
-    const match = text.match(/\{[\s\S]*\}/);
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview", // or "gemini-2.5-flash"
+          contents: prompt,
+        });
 
-    let tripData;
+        const text = response.text || "";
 
-    try {
-      tripData = match ? JSON.parse(match[0]) : null;
-    } catch (err) {
-      tripData = null;
+        console.log(text);
+
+        console.log("AI RAW RESPONSE:", text);
+
+        const match = text.match(/\{[\s\S]*\}/);
+        tripData = match ? JSON.parse(match[0]) : null;
+      } catch (err) {
+        console.warn("Gemini fallback activated:", err.message);
+        tripData = null;
+      }
     }
 
-    // ✅ Safe fallback (prevents UI crash)
     if (!tripData || !tripData.itinerary) {
-      return res.json({
-        destination,
-        summary: "Basic fallback plan",
-        itinerary: [
-          {
-            day: "Day 1",
-            title: "Explore locally",
-            activities: [text || "Explore nearby places"],
-            food: [],
-            travel: "",
-            estimated_cost: 0,
-          },
-        ],
-        budget,
-        days,
-      });
+      tripData = generateFallbackTrip({ destination, budget, interests, days });
     }
 
-    // ✅ Final response
     res.json({
       destination: tripData.destination || destination,
       summary: tripData.summary || "",
       itinerary: tripData.itinerary || [],
-      budget,
-      days,
+      budget: tripData.budget || Number(budget),
+      days: tripData.days || Number(days),
     });
   } catch (error) {
     console.error("FULL ERROR:", error);
-
     res.status(500).json({
       message: "AI failed",
       error: error.message,
@@ -184,9 +231,19 @@ app.post("/save-trip", async (req, res) => {
       return res.status(400).json({ message: "Invalid trip data" });
     }
 
-    const trip = await Trip.create(req.body);
+    if (dbConnected) {
+      const trip = await Trip.create(req.body);
+      return res.json(trip);
+    }
 
-    res.json(trip);
+    const fallbackTrip = {
+      ...req.body,
+      _id: randomUUID ? randomUUID() : `${Date.now()}`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    tripsStore.unshift(fallbackTrip);
+    res.json(fallbackTrip);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Save failed" });
@@ -195,15 +252,40 @@ app.post("/save-trip", async (req, res) => {
 
 // ✅ Get all trips
 app.get("/trips", async (req, res) => {
-  const trips = await Trip.find().sort({ createdAt: -1 });
-  res.json(trips);
+  if (dbConnected) {
+    const trips = await Trip.find().sort({ createdAt: -1 });
+    return res.json(trips);
+  }
+
+  res.json(tripsStore);
+});
+
+// ✅ Delete trip
+app.delete("/trips/:id", async (req, res) => {
+  try {
+    if (dbConnected) {
+      await Trip.findByIdAndDelete(req.params.id);
+      return res.json({ message: "Deleted" });
+    }
+
+    tripsStore = tripsStore.filter((trip) => trip._id !== req.params.id);
+    res.json({ message: "Deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Delete failed" });
+  }
 });
 
 // ✅ Get single trip
 app.get("/trips/:id", async (req, res) => {
   try {
-    const trip = await Trip.findById(req.params.id);
-    res.json(trip);
+    if (dbConnected) {
+      const trip = await Trip.findById(req.params.id);
+      return res.json(trip);
+    }
+
+    const trip = tripsStore.find((item) => item._id === req.params.id);
+    res.json(trip || {});
   } catch (err) {
     res.status(500).json({ message: "Error fetching trip" });
   }
