@@ -5,9 +5,12 @@ const Trips = ({ trips, setTrips }) => {
   const navigate = useNavigate();
 
   // ✅ Delete from DB
+  const API_URL =
+    import.meta.env.VITE_API_URL || "https://trippy-backend-xiaq.onrender.com";
+
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/trips/${id}`, {
+      const res = await fetch(`${API_URL}/trips/${id}`, {
         method: "DELETE",
       });
 

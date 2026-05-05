@@ -7,10 +7,13 @@ const TripDetails = () => {
   const [trip, setTrip] = useState(null);
   const [error, setError] = useState(false);
 
+  const API_URL =
+    import.meta.env.VITE_API_URL || "https://trippy-backend-xiaq.onrender.com";
+
   useEffect(() => {
     const fetchTrip = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/trips/${id}`);
+        const res = await fetch(`${API_URL}/trips/${id}`);
 
         if (!res.ok) throw new Error("Failed to fetch");
 

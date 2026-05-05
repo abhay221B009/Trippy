@@ -8,9 +8,8 @@ const TripForm = ({ setTrips }) => {
     days: "",
   });
 
-  // const API_URL =
-  // import.meta.env.VITE_NEXT_PUBLIC_URL || "http://localhost:5000";
-  const API_URL = "https://trippy-backend-xiaq.onrender.com";
+  const API_URL =
+    import.meta.env.VITE_API_URL || "https://trippy-backend-xiaq.onrender.com";
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
