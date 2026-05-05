@@ -19,9 +19,14 @@ const Trips = ({ trips, setTrips }) => {
       }
 
       // Update UI
-      setTrips((prev) => prev.filter((trip) => trip._id !== id && trip.id !== id));
+      const updatedTrips = trips.filter((trip) => trip._id !== id && trip.id !== id);
+      setTrips(updatedTrips);
+      
+      // Update localStorage backup
+      localStorage.setItem("trips_backup", JSON.stringify(updatedTrips));
+      console.log("✅ Trip deleted from MongoDB & localStorage");
     } catch (err) {
-      console.error(err);
+      console.error("Delete error:", err);
       alert("Failed to delete ❌");
     }
   };
@@ -84,7 +89,7 @@ const Trips = ({ trips, setTrips }) => {
 
             {/* View Button */}
             <button
-              onClick={() => navigate(`/trips/${trip._id || trip.id}`)}
+              onClick={() => navigate(`/trips/${tripId}`)}
               className="text-blue-500 font-medium border border-blue-500 px-3 py-1 rounded hover:bg-blue-500 hover:text-white transition"
             >
               View Details

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const TripForm = ({ setTrips }) => {
+const TripForm = ({ setTrips, refetchTrips }) => {
   const [formData, setFormData] = useState({
     destination: "",
     budget: "",
@@ -72,9 +72,12 @@ const TripForm = ({ setTrips }) => {
     setLoading(false);
   };
 
-  // Save trip
+  // Save trip to MongoDB or localStorage
   const handleSaveTrip = async () => {
     if (!result) return;
+
+    let savedTrip = null;
+    let savedToMongoDB = false;
 
     try {
       const response = await fetch(`${API_URL}/save-trip`, {
@@ -85,14 +88,40 @@ const TripForm = ({ setTrips }) => {
         body: JSON.stringify(result),
       });
 
-      const data = await response.json();
+      if (!response.ok) throw new Error("API error");
 
-      setTrips((prev) => [data, ...prev]);
-
-      alert("Trip saved successfully 💾");
+      savedTrip = await response.json();
+      savedToMongoDB = true;
+      console.log("✅ Trip saved to MongoDB Atlas");
     } catch (err) {
-      console.error(err);
-      alert("Failed to save trip ❌");
+      console.error("MongoDB save failed, saving to localStorage:", err);
+      // Fallback: Save to localStorage
+      savedTrip = {
+        ...result,
+        _id: `local_${Date.now()}`,
+        id: `local_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      console.log("✅ Trip saved to localStorage (offline mode)");
+    }
+
+    if (savedTrip) {
+      const updatedTrips = [savedTrip, ...trips];
+      setTrips(updatedTrips);
+
+      // Update localStorage backup
+      localStorage.setItem("trips_backup", JSON.stringify(updatedTrips));
+
+      // Refetch trips to keep App.jsx trips state in sync
+      if (refetchTrips) {
+        refetchTrips();
+      }
+
+      const message = savedToMongoDB
+        ? "Trip saved to MongoDB Atlas 💾"
+        : "Trip saved locally (offline mode) 💾";
+      alert(message);
     }
   };
 

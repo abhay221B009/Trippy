@@ -3,7 +3,7 @@ import TripForm from "../components/TripForm";
 import Hero from "../components/Hero";
 import DestinationCarousel from "../components/DestinationCarousel";
 
-const Home = ({ setTrips }) => {
+const Home = ({ setTrips, refetchTrips }) => {
   return (
     <div className="bg-gray-100 min-h-screen">
       {/* HERO */}
@@ -13,7 +13,7 @@ const Home = ({ setTrips }) => {
 
       {/* FORM SECTION */}
       <div id="plan" className="py-10">
-        <TripForm setTrips={setTrips} />
+        <TripForm setTrips={setTrips} refetchTrips={refetchTrips} />
       </div>
     </div>
   );

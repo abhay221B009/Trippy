@@ -232,20 +232,33 @@ app.post("/save-trip", async (req, res) => {
     }
 
     if (dbConnected) {
-      const trip = await Trip.create(req.body);
-      return res.json(trip);
+      try {
+        const trip = await Trip.create(req.body);
+        console.log("✅ Trip saved to MongoDB Atlas:", trip._id);
+        return res.json(trip);
+      } catch (mongoErr) {
+        console.error(
+          "❌ MongoDB save failed, using fallback:",
+          mongoErr.message,
+        );
+        dbConnected = false;
+      }
     }
 
     const fallbackTrip = {
       ...req.body,
-      _id: randomUUID ? randomUUID() : `${Date.now()}`,
+      _id: randomUUID ? randomUUID() : `fallback_${Date.now()}`,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
     tripsStore.unshift(fallbackTrip);
+    console.log(
+      "📦 Trip saved to memory storage (fallback):",
+      fallbackTrip._id,
+    );
     res.json(fallbackTrip);
   } catch (err) {
-    console.error(err);
+    console.error("❌ Save error:", err.message);
     res.status(500).json({ message: "Save failed" });
   }
 });
@@ -253,10 +266,24 @@ app.post("/save-trip", async (req, res) => {
 // ✅ Get all trips
 app.get("/trips", async (req, res) => {
   if (dbConnected) {
-    const trips = await Trip.find().sort({ createdAt: -1 });
-    return res.json(trips);
+    try {
+      const trips = await Trip.find().sort({ createdAt: -1 });
+      console.log("✅ Fetched", trips.length, "trips from MongoDB Atlas");
+      return res.json(trips);
+    } catch (mongoErr) {
+      console.error(
+        "❌ MongoDB fetch failed, using fallback:",
+        mongoErr.message,
+      );
+      dbConnected = false;
+    }
   }
 
+  console.log(
+    "📦 Fetched",
+    tripsStore.length,
+    "trips from memory storage (fallback)",
+  );
   res.json(tripsStore);
 });
 
@@ -264,14 +291,27 @@ app.get("/trips", async (req, res) => {
 app.delete("/trips/:id", async (req, res) => {
   try {
     if (dbConnected) {
-      await Trip.findByIdAndDelete(req.params.id);
-      return res.json({ message: "Deleted" });
+      try {
+        await Trip.findByIdAndDelete(req.params.id);
+        console.log("✅ Trip deleted from MongoDB Atlas:", req.params.id);
+        return res.json({ message: "Deleted" });
+      } catch (mongoErr) {
+        console.error(
+          "❌ MongoDB delete failed, using fallback:",
+          mongoErr.message,
+        );
+        dbConnected = false;
+      }
     }
 
     tripsStore = tripsStore.filter((trip) => trip._id !== req.params.id);
+    console.log(
+      "📦 Trip deleted from memory storage (fallback):",
+      req.params.id,
+    );
     res.json({ message: "Deleted" });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Delete error:", err.message);
     res.status(500).json({ message: "Delete failed" });
   }
 });
@@ -280,13 +320,27 @@ app.delete("/trips/:id", async (req, res) => {
 app.get("/trips/:id", async (req, res) => {
   try {
     if (dbConnected) {
-      const trip = await Trip.findById(req.params.id);
-      return res.json(trip);
+      try {
+        const trip = await Trip.findById(req.params.id);
+        console.log("✅ Fetched trip from MongoDB Atlas:", req.params.id);
+        return res.json(trip);
+      } catch (mongoErr) {
+        console.error(
+          "❌ MongoDB fetch failed, using fallback:",
+          mongoErr.message,
+        );
+        dbConnected = false;
+      }
     }
 
     const trip = tripsStore.find((item) => item._id === req.params.id);
+    console.log(
+      "📦 Fetched trip from memory storage (fallback):",
+      req.params.id,
+    );
     res.json(trip || {});
   } catch (err) {
+    console.error("❌ Fetch error:", err.message);
     res.status(500).json({ message: "Error fetching trip" });
   }
 });

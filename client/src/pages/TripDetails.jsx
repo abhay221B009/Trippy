@@ -11,17 +11,26 @@ const TripDetails = ({ trips }) => {
     import.meta.env.VITE_API_URL || "https://trippy-backend-xiaq.onrender.com";
 
   useEffect(() => {
-    const localTrip = trips?.find((item) => item._id === id || item.id === id);
+    const tripId = id;
+    const localTrip = trips?.find(
+      (item) => item._id === tripId || item.id === tripId,
+    );
+
+    if (localTrip) {
+      setTrip(localTrip);
+    }
 
     const fetchTrip = async () => {
       try {
-        const res = await fetch(`${API_URL}/trips/${id}`);
+        const res = await fetch(`${API_URL}/trips/${tripId}`);
 
-        if (!res.ok) throw new Error("Failed to fetch");
+        if (!res.ok) {
+          throw new Error(`Failed to fetch trip: ${res.status}`);
+        }
 
         const data = await res.json();
 
-        if (data && Object.keys(data).length > 0) {
+        if (data && Object.keys(data).length > 0 && (data._id || data.id)) {
           setTrip(data);
           return;
         }
@@ -33,16 +42,16 @@ const TripDetails = ({ trips }) => {
 
         throw new Error("Trip not found");
       } catch (err) {
-        console.error(err);
-        if (localTrip) {
-          setTrip(localTrip);
-          return;
+        console.error("TripDetails fetch error:", err);
+        if (!localTrip) {
+          setError(true);
         }
-        setError(true);
       }
     };
 
-    fetchTrip();
+    if (!localTrip) {
+      fetchTrip();
+    }
   }, [id, API_URL, trips]);
 
   if (error) {
