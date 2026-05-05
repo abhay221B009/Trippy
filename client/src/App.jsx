@@ -23,11 +23,11 @@ const App = () => {
 
       <Routes>
         <Route path="/" element={<Home setTrips={setTrips} />} />
+        <Route path="/trips/:id" element={<TripDetails trips={trips} />} />
         <Route
           path="/trips"
           element={<Trips trips={trips} setTrips={setTrips} />}
         />
-        <Route path="/trips/:id" element={<TripDetails trips={trips} />} />
       </Routes>
     </>
   );

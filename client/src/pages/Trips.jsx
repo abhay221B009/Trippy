@@ -19,7 +19,7 @@ const Trips = ({ trips, setTrips }) => {
       }
 
       // Update UI
-      setTrips((prev) => prev.filter((trip) => trip._id !== id));
+      setTrips((prev) => prev.filter((trip) => trip._id !== id && trip.id !== id));
     } catch (err) {
       console.error(err);
       alert("Failed to delete ❌");
@@ -37,11 +37,13 @@ const Trips = ({ trips, setTrips }) => {
       <h2 className="text-4xl font-bold text-center mb-10">✈️ My Trips</h2>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {trips.map((trip) => (
-          <div
-            key={trip._id}
-            className="bg-white rounded-xl shadow-md p-5 border border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-          >
+        {trips.map((trip) => {
+          const tripId = trip._id || trip.id;
+          return (
+            <div
+              key={tripId}
+              className="bg-white rounded-xl shadow-md p-5 border border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            >
             {/* Header */}
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-bold">{trip.destination}</h3>
@@ -49,7 +51,7 @@ const Trips = ({ trips, setTrips }) => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDelete(trip._id);
+                  handleDelete(trip._id || trip.id);
                 }}
                 className="border border-red-500 p-2 rounded hover:bg-red-500 group transition flex items-center justify-center"
               >
@@ -82,7 +84,7 @@ const Trips = ({ trips, setTrips }) => {
 
             {/* View Button */}
             <button
-              onClick={() => navigate(`/trips/${trip._id}`)}
+              onClick={() => navigate(`/trips/${trip._id || trip.id}`)}
               className="text-blue-500 font-medium border border-blue-500 px-3 py-1 rounded hover:bg-blue-500 hover:text-white transition"
             >
               View Details

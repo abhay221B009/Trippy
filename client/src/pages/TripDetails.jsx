@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-const TripDetails = () => {
+const TripDetails = ({ trips }) => {
   const { id } = useParams();
 
   const [trip, setTrip] = useState(null);
@@ -11,6 +11,8 @@ const TripDetails = () => {
     import.meta.env.VITE_API_URL || "https://trippy-backend-xiaq.onrender.com";
 
   useEffect(() => {
+    const localTrip = trips?.find((item) => item._id === id || item.id === id);
+
     const fetchTrip = async () => {
       try {
         const res = await fetch(`${API_URL}/trips/${id}`);
@@ -18,15 +20,30 @@ const TripDetails = () => {
         if (!res.ok) throw new Error("Failed to fetch");
 
         const data = await res.json();
-        setTrip(data);
+
+        if (data && Object.keys(data).length > 0) {
+          setTrip(data);
+          return;
+        }
+
+        if (localTrip) {
+          setTrip(localTrip);
+          return;
+        }
+
+        throw new Error("Trip not found");
       } catch (err) {
         console.error(err);
+        if (localTrip) {
+          setTrip(localTrip);
+          return;
+        }
         setError(true);
       }
     };
 
     fetchTrip();
-  }, [id]);
+  }, [id, API_URL, trips]);
 
   if (error) {
     return (
