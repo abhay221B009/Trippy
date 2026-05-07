@@ -18,6 +18,18 @@ const Signup = () => {
     setSuccess("");
     setLoading(true);
 
+    // Client-side validation
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      setLoading(false);
+      return;
+    }
+    if (username.length < 3) {
+      setError("Username must be at least 3 characters.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const result = await signup(username, email, password);
       if (result.success) {
@@ -86,8 +98,10 @@ const Signup = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
               placeholder="••••••••"
+              minLength={8}
               required
             />
+            <p className="text-xs text-gray-400 mt-1">Minimum 8 characters</p>
           </div>
 
           <button

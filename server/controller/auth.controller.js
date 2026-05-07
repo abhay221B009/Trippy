@@ -7,7 +7,12 @@ export const signinHandler = async (req,res)=>{
   const parseResult = signinSchema.safeParse(req.body)
   if(!parseResult.success){
     console.log("[signin] validation errors:", parseResult.error.errors)
-    return res.status(400).json({message: "invalid json payload", errors: parseResult.error.errors})
+    const firstError = parseResult.error.errors[0]
+    return res.status(400).json({
+      message: firstError?.message || "Invalid input",
+      field: firstError?.path?.[0] || null,
+      errors: parseResult.error.errors
+    })
   }
 
   const { email, password } = parseResult.data
@@ -43,7 +48,12 @@ export const signupHandler =  async (req,res)=>{
     const parseResult = signupSchema.safeParse(req.body)
   if(!parseResult.success) {
     console.log("[signup] validation errors:", parseResult.error.errors)
-    return res.status(400).json({message: "invalid json payload", errors: parseResult.error.errors})
+    const firstError = parseResult.error.errors[0]
+    return res.status(400).json({
+      message: firstError?.message || "Invalid input",
+      field: firstError?.path?.[0] || null,
+      errors: parseResult.error.errors
+    })
   }
 
   const {username, email, password} = parseResult.data
