@@ -8,7 +8,7 @@ import TripDetails from "./pages/TripDetails";
 const App = () => {
   const [trips, setTrips] = useState([]);
   const API_URL =
-    import.meta.env.VITE_API_URL || "https://trippy-backend-xiaq.onrender.com";
+    import.meta.env.VITE_API_URL || "https://trippy-qjc4.onrender.com";
 
   // Fetch trips on mount
   useEffect(() => {

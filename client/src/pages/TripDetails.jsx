@@ -8,7 +8,7 @@ const TripDetails = ({ trips }) => {
   const [error, setError] = useState(false);
 
   const API_URL =
-    import.meta.env.VITE_API_URL || "https://trippy-backend-xiaq.onrender.com";
+    import.meta.env.VITE_API_URL || "https://trippy-qjc4.onrender.com";
 
   useEffect(() => {
     const tripId = id;

@@ -6,7 +6,7 @@ const Trips = ({ trips, setTrips }) => {
 
   // ✅ Delete from DB
   const API_URL =
-    import.meta.env.VITE_API_URL || "https://trippy-backend-xiaq.onrender.com";
+    import.meta.env.VITE_API_URL || "https://trippy-qjc4.onrender.com";
 
   const handleDelete = async (id) => {
     try {

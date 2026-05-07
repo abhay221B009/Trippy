@@ -9,7 +9,7 @@ const TripForm = ({ setTrips, refetchTrips }) => {
   });
 
   const API_URL =
-    import.meta.env.VITE_API_URL || "https://trippy-backend-xiaq.onrender.com";
+    import.meta.env.VITE_API_URL || "https://trippy-qjc4.onrender.com";
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
