@@ -11,8 +11,8 @@ const Trips = ({ trips, setTrips }) => {
       const res = await fetch(`${API_URL}/trips/${id}`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!res.ok) {
@@ -101,6 +101,9 @@ const Trips = ({ trips, setTrips }) => {
           );
         })}
       </div>
+      <footer className="text-center text-gray-400 mt-10">
+        &copy; {new Date().getFullYear()} Mishty@arc
+      </footer>
     </div>
   );
 };
