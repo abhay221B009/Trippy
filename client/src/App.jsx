@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Trips from "./pages/Trips";
 import Navbar from "./components/Navbar";
@@ -11,6 +11,9 @@ import { useAuth } from "./context/AuthContext";
 const App = () => {
   const [trips, setTrips] = useState([]);
   const { token, API_URL, loading: authLoading } = useAuth();
+  const location = useLocation();
+
+  const hideFooter = ["/signin", "/signup"].includes(location.pathname);
 
   // Fetch trips on mount or when token changes
   useEffect(() => {
@@ -83,9 +86,12 @@ const App = () => {
           }
         />
       </Routes>
-      <footer className="text-center text-gray-400 mt-2">
-        mishty@arc &copy; {new Date().getFullYear()}
-      </footer>
+
+      {!hideFooter && (
+        <footer className="text-center text-gray-400 py-4 mt-2 text-sm">
+          mishty@arc &copy; {new Date().getFullYear()}
+        </footer>
+      )}
     </>
   );
 };
