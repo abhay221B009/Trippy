@@ -94,13 +94,14 @@ app.post("/generate-trip", async (req, res) => {
     if (genAI) {
       try {
         const prompt = `
+# ROLE
 You are a smart travel planner.
 
+# TASK
 Plan a ${days}-day trip to ${destination} within ₹${budget}.
 User interests: ${interests}.
 
-Return ONLY valid JSON in this format:
-
+# JSON STRUCTURE
 {
   "destination": "${destination}",
   "summary": "1 line trip vibe",
@@ -119,78 +120,29 @@ Return ONLY valid JSON in this format:
   ]
 }
 
-RULES (STRICT):
-
+# RULES (STRICT)
 1. Output MUST be valid JSON only. No text outside JSON.
+2. Each day MUST include: day, title, activities (array), food (array), travel (string), estimated_cost (number only).
+3. Activities: Max 5–10 words each. Must include ₹ cost. Example: "Visit Red Fort (₹50)"
+4. Food: 2–3 local food items per day. Include approximate price.
+5. Travel: Mention transport (metro/auto/walk/scooter) and include estimated cost.
+6. Pricing: Use realistic Indian prices. Budget-friendly suggestions. No luxury unless budget allows.
+7. Daily Budget: estimated_cost MUST be a number. Sum should roughly match total budget.
+8. Experience Quality: Balanced plan (travel + food + sightseeing). Do NOT overload activities.
+9. Clarity: No long sentences. No paragraphs. Keep everything short and scannable.
+10. Summary: One short line describing vibe.
+11. Consistency: Keep total cost within budget range.
 
-2. Each day MUST include:
-- day
-- title
-- activities (array)
-- food (array)
-- travel (string)
-- estimated_cost (number only)
-
-3. Activities:
-- Max 5–10 words each
-- Must include ₹ cost
-- Example: "Visit Red Fort (₹50)"
-
-4. Food:
-- 2–3 local food items per day
-- Include approximate price
-
-5. Travel:
-- Mention transport (metro/auto/walk/scooter)
-- Include estimated cost
-
-6. Pricing:
-- Use realistic Indian prices
-- Budget-friendly suggestions
-- No luxury unless budget allows
-
-7. Daily Budget:
-- estimated_cost MUST be a number
-- Sum should roughly match total budget
-
-8. Experience Quality:
-- Balanced plan (travel + food + sightseeing)
-- Do NOT overload activities
-
-9. Clarity:
-- No long sentences
-- No paragraphs
-- Keep everything short and scannable
-
-10. Summary:
-- One short line describing vibe
-
-11. Consistency:
-- Keep total cost within budget range
+# RESPONSE
+[Provide ONLY the JSON object below]
 `;
 
-        // const model = genAI.getGenerativeModel({
-        //   model: "gemini-2.5-flash",
-        // });
-
-        // const result = await model.generateContent(prompt);
-        // const text =
-        //   result.response?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-        console.log("Gemini RAW RESPONSE:");
-
-        const ai = new GoogleGenAI({
-          apiKey: process.env.GEMINI_API_KEY, // make sure you set this
+        const model = genAI.getGenerativeModel({
+          model: "gemini-2.5-flash",
         });
 
-        const response = await ai.models.generateContent({
-          model: "gemini-3-flash-preview", // or "gemini-2.5-flash"
-          contents: prompt,
-        });
-
-        const text = response.text || "";
-
-        console.log(text);
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
 
         console.log("AI RAW RESPONSE:", text);
 
