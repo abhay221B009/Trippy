@@ -24,12 +24,12 @@ const App = () => {
   // Refetch trips from server
   const fetchTrips = async () => {
     if (!token) return;
-    
+
     try {
       const res = await fetch(`${API_URL}/trips`, {
         headers: {
-          "Authorization": `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       if (!res.ok) throw new Error("API failed");
       const data = await res.json();
@@ -44,7 +44,12 @@ const App = () => {
     }
   };
 
-  if (authLoading) return <div className="h-screen flex items-center justify-center">Loading...</div>;
+  if (authLoading)
+    return (
+      <div className="h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
 
   return (
     <>
@@ -59,13 +64,28 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route
           path="/trips/:id"
-          element={token ? <TripDetails trips={trips} refetchTrips={fetchTrips} /> : <Navigate to="/signin" />}
+          element={
+            token ? (
+              <TripDetails trips={trips} refetchTrips={fetchTrips} />
+            ) : (
+              <Navigate to="/signin" />
+            )
+          }
         />
         <Route
           path="/trips"
-          element={token ? <Trips trips={trips} setTrips={setTrips} /> : <Navigate to="/signin" />}
+          element={
+            token ? (
+              <Trips trips={trips} setTrips={setTrips} />
+            ) : (
+              <Navigate to="/signin" />
+            )
+          }
         />
       </Routes>
+      <footer className="text-center text-gray-400 mt-2">
+        mishty@arc &copy; {new Date().getFullYear()}
+      </footer>
     </>
   );
 };
