@@ -3,9 +3,11 @@ import User from "../models/User.js";
 import { signinSchema, signupSchema } from "../schemas/auth.schemas.js";
 
 export const signinHandler = async (req,res)=>{
+  console.log("[signin] req.body:", req.body)
   const parseResult = signinSchema.safeParse(req.body)
   if(!parseResult.success){
-    return res.status(400).json({message: "invalid json payload"})
+    console.log("[signin] validation errors:", parseResult.error.errors)
+    return res.status(400).json({message: "invalid json payload", errors: parseResult.error.errors})
   }
 
   const { email, password } = parseResult.data
@@ -37,9 +39,11 @@ export const signinHandler = async (req,res)=>{
 
 export const signupHandler =  async (req,res)=>{
   try {
+    console.log("[signup] req.body:", req.body)
     const parseResult = signupSchema.safeParse(req.body)
   if(!parseResult.success) {
-    return res.status(400).json({message: "invalid json payload"})
+    console.log("[signup] validation errors:", parseResult.error.errors)
+    return res.status(400).json({message: "invalid json payload", errors: parseResult.error.errors})
   }
 
   const {username, email, password} = parseResult.data

@@ -31,7 +31,31 @@ if (hasMongoUri) {
   console.warn("MONGO_URI not set. Using in-memory trip storage only.");
 }
 
-app.use(cors());
+// Build allowed origins: always include localhost for dev, plus the deployed Vercel URL from env
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+if (process.env.ALLOWED_ORIGIN) {
+  allowedOrigins.push(process.env.ALLOWED_ORIGIN);
+}
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, Postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      console.warn(`[CORS] Blocked origin: ${origin}`);
+      return callback(new Error(`CORS not allowed for origin: ${origin}`), false);
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // ✅ Root route
