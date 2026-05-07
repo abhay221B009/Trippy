@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const tripSchema = new mongoose.Schema(
   {
@@ -6,7 +6,7 @@ const tripSchema = new mongoose.Schema(
     summary: String,
     days: Number,
     budget: Number,
-
+    userId: String, 
     itinerary: [
       {
         day: String,
@@ -21,4 +21,4 @@ const tripSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model("Trip", tripSchema);
+export default mongoose.model("Trip", tripSchema);

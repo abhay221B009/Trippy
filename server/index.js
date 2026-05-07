@@ -1,11 +1,12 @@
-require("dotenv").config();
-
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const { randomUUID } = require("crypto");
-const Trip = require("./models/Trip");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+import "dotenv/config";
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import { randomUUID } from "crypto";
+import Trip from "./models/Trip.js";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { signinHandler, signupHandler } from "./controller/auth.controller.js";
+import { requireAuthentication } from "./middleware/auth.middleware.js";
 
 const app = express();
 
@@ -78,6 +79,9 @@ const generateFallbackTrip = ({ destination, budget, interests, days }) => {
     days: numericDays,
   };
 };
+
+app.post("/signin", signinHandler)
+app.post("/signup", signupHandler)
 
 // ✅ AI Route
 app.post("/generate-trip", async (req, res) => {
@@ -174,8 +178,9 @@ User interests: ${interests}.
   }
 });
 
+app.use(requireAuthentication)
 // ✅ Save trip API (validated)
-app.post("/save-trip", async (req, res) => {
+app.post("/save-trip",  async (req, res) => {
   try {
     const { destination, itinerary } = req.body;
 
@@ -185,7 +190,7 @@ app.post("/save-trip", async (req, res) => {
 
     if (dbConnected) {
       try {
-        const trip = await Trip.create(req.body);
+        const trip = await Trip.create({...req.body, userId: req.user._id});
         console.log("✅ Trip saved to MongoDB Atlas:", trip._id);
         return res.json(trip);
       } catch (mongoErr) {
@@ -219,7 +224,7 @@ app.post("/save-trip", async (req, res) => {
 app.get("/trips", async (req, res) => {
   if (dbConnected) {
     try {
-      const trips = await Trip.find().sort({ createdAt: -1 });
+      const trips = await Trip.find({userId: req.user._id}).sort({ createdAt: -1 });
       console.log("✅ Fetched", trips.length, "trips from MongoDB Atlas");
       return res.json(trips);
     } catch (mongoErr) {
@@ -244,7 +249,10 @@ app.delete("/trips/:id", async (req, res) => {
   try {
     if (dbConnected) {
       try {
-        await Trip.findByIdAndDelete(req.params.id);
+        const deletedTrip = await Trip.findOneAndDelete({
+          _id: req.params.id,
+          userId: req.user._id,
+        });
         console.log("✅ Trip deleted from MongoDB Atlas:", req.params.id);
         return res.json({ message: "Deleted" });
       } catch (mongoErr) {
@@ -273,7 +281,7 @@ app.get("/trips/:id", async (req, res) => {
   try {
     if (dbConnected) {
       try {
-        const trip = await Trip.findById(req.params.id);
+        const trip = await Trip.findOne({_id: req.params.id, userId: req.user._id});
         console.log("✅ Fetched trip from MongoDB Atlas:", req.params.id);
         return res.json(trip);
       } catch (mongoErr) {
@@ -296,6 +304,11 @@ app.get("/trips/:id", async (req, res) => {
     res.status(500).json({ message: "Error fetching trip" });
   }
 });
+
+app.post("/logout", (req,res)=>{
+ res.status(200).json({message: "Logout successful"})   
+})
+
 
 // ✅ Start server
 app.listen(5000, () => {

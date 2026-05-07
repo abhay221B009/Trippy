@@ -1,17 +1,18 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Trips = ({ trips, setTrips }) => {
   const navigate = useNavigate();
-
-  // ✅ Delete from DB
-  const API_URL =
-    import.meta.env.VITE_API_URL || "https://trippy-qjc4.onrender.com";
+  const { token, API_URL } = useAuth();
 
   const handleDelete = async (id) => {
     try {
       const res = await fetch(`${API_URL}/trips/${id}`, {
         method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
       });
 
       if (!res.ok) {

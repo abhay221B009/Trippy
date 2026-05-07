@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const TripDetails = ({ trips }) => {
   const { id } = useParams();
-
+  const { token, API_URL } = useAuth();
   const [trip, setTrip] = useState(null);
   const [error, setError] = useState(false);
-
-  const API_URL =
-    import.meta.env.VITE_API_URL || "https://trippy-qjc4.onrender.com";
 
   useEffect(() => {
     const tripId = id;
@@ -22,7 +20,11 @@ const TripDetails = ({ trips }) => {
 
     const fetchTrip = async () => {
       try {
-        const res = await fetch(`${API_URL}/trips/${tripId}`);
+        const res = await fetch(`${API_URL}/trips/${tripId}`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
 
         if (!res.ok) {
           throw new Error(`Failed to fetch trip: ${res.status}`);

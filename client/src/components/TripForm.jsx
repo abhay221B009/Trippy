@@ -1,15 +1,11 @@
 import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const TripForm = ({ setTrips, refetchTrips }) => {
-  const [formData, setFormData] = useState({
-    destination: "",
-    budget: "",
-    interests: "",
-    days: "",
-  });
-
-  const API_URL =
-    import.meta.env.VITE_API_URL || "https://trippy-qjc4.onrender.com";
+  const { token, API_URL } = useAuth();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({})
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -28,6 +24,7 @@ const TripForm = ({ setTrips, refetchTrips }) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(token && { "Authorization": `Bearer ${token}` })
       },
       body: JSON.stringify(formData),
     });
@@ -75,6 +72,12 @@ const TripForm = ({ setTrips, refetchTrips }) => {
   // Save trip to MongoDB or localStorage
   const handleSaveTrip = async () => {
     if (!result) return;
+    
+    if (!token) {
+      alert("Please login to save your trip! 🔑");
+      navigate("/signin");
+      return;
+    }
 
     let savedTrip = null;
     let savedToMongoDB = false;
@@ -84,6 +87,7 @@ const TripForm = ({ setTrips, refetchTrips }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(result),
       });
