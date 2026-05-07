@@ -102,7 +102,7 @@ const Trips = ({ trips, setTrips }) => {
         })}
       </div>
       <footer className="text-center text-gray-400 mt-10">
-        &copy; {new Date().getFullYear()} Mishty@arc
+        &copy; {new Date().getFullYear()} mishty@arc
       </footer>
     </div>
   );
