@@ -107,11 +107,12 @@ const TripForm = ({ setTrips, refetchTrips }) => {
     }
 
     if (savedTrip) {
-      const updatedTrips = [savedTrip, ...trips];
-      setTrips(updatedTrips);
-
-      // Update localStorage backup
-      localStorage.setItem("trips_backup", JSON.stringify(updatedTrips));
+      setTrips((prevTrips) => {
+        const updatedTrips = [savedTrip, ...prevTrips];
+        // Update localStorage backup
+        localStorage.setItem("trips_backup", JSON.stringify(updatedTrips));
+        return updatedTrips;
+      });
 
       // Refetch trips to keep App.jsx trips state in sync
       if (refetchTrips) {
