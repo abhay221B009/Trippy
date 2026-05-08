@@ -124,7 +124,7 @@ const TripForm = ({ setTrips, refetchTrips }) => {
       }
 
       const message = savedToMongoDB
-        ? "Trip saved to MongoDB Atlas 💾"
+        ? "Saved in My Trips"
         : "Trip saved locally (offline mode) 💾";
       alert(message);
     }
