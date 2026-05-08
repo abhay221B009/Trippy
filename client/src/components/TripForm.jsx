@@ -94,7 +94,6 @@ const TripForm = ({ setTrips, refetchTrips }) => {
         localStorage.setItem("trips_backup", JSON.stringify(updatedTrips));
         return updatedTrips;
       });
-<<<<<<< HEAD
 
       // Refetch trips to keep App.jsx trips state in sync
       if (refetchTrips) {
@@ -105,10 +104,6 @@ const TripForm = ({ setTrips, refetchTrips }) => {
         ? "Saved in My Trips"
         : "Trip saved locally (offline mode) 💾";
       alert(message);
-=======
-      if (refetchTrips) refetchTrips();
-      alert(savedToMongoDB ? "Trip saved to MongoDB Atlas 💾" : "Trip saved locally 💾");
->>>>>>> ae9c93c (feat: premium UI redesign - Modern AI SaaS theme)
     }
   };
 
