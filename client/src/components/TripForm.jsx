@@ -101,7 +101,7 @@ if (refetchTrips) {
 
 alert(
   savedToMongoDB
-    ? "Trip saved to MongoDB Atlas 💾"
+    ? "Trip saved💾"
     : "Trip saved locally 💾"
 );
     }
