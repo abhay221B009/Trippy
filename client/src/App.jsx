@@ -13,7 +13,7 @@ const App = () => {
   const { token, API_URL, loading: authLoading } = useAuth();
   const location = useLocation();
 
-  const hideFooter = ["/signin", "/signup"].includes(location.pathname);
+  const hideNavbarFooter = ["/signin", "/signup"].includes(location.pathname);
 
   // Fetch trips on mount or when token changes
   useEffect(() => {
@@ -24,15 +24,11 @@ const App = () => {
     }
   }, [token, API_URL]);
 
-  // Refetch trips from server
   const fetchTrips = async () => {
     if (!token) return;
-
     try {
       const res = await fetch(`${API_URL}/trips`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("API failed");
       const data = await res.json();
@@ -47,49 +43,62 @@ const App = () => {
     }
   };
 
-  if (authLoading)
+  if (authLoading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        Loading...
+      <div
+        className="h-screen flex flex-col items-center justify-center gap-3"
+        style={{ background: "#F8FAFC" }}
+      >
+        <div className="spinner" />
+        <p className="text-sm font-medium" style={{ color: "#64748B" }}>
+          Loading Trippy...
+        </p>
       </div>
     );
+  }
 
   return (
     <>
-      <Navbar />
+      {!hideNavbarFooter && <Navbar />}
 
       <Routes>
-        <Route
-          path="/"
-          element={<Home setTrips={setTrips} refetchTrips={fetchTrips} />}
-        />
+        <Route path="/" element={<Home setTrips={setTrips} refetchTrips={fetchTrips} />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/signup" element={<Signup />} />
         <Route
           path="/trips/:id"
-          element={
-            token ? (
-              <TripDetails trips={trips} refetchTrips={fetchTrips} />
-            ) : (
-              <Navigate to="/signin" />
-            )
-          }
+          element={token ? <TripDetails trips={trips} refetchTrips={fetchTrips} /> : <Navigate to="/signin" />}
         />
         <Route
           path="/trips"
-          element={
-            token ? (
-              <Trips trips={trips} setTrips={setTrips} />
-            ) : (
-              <Navigate to="/signin" />
-            )
-          }
+          element={token ? <Trips trips={trips} setTrips={setTrips} /> : <Navigate to="/signin" />}
         />
       </Routes>
 
-      {!hideFooter && (
-        <footer className="text-center text-gray-400 py-4 mt-2 text-sm">
-          mishty@arc &copy; {new Date().getFullYear()}
+      {!hideNavbarFooter && (
+        <footer
+          className="text-center py-8 border-t"
+          style={{ borderColor: "#F1F5F9", background: "#F8FAFC" }}
+        >
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div
+              className="w-6 h-6 rounded-lg flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #2563EB 0%, #06B6D4 100%)" }}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </div>
+            <span
+              className="text-sm font-bold"
+              style={{ fontFamily: "'Poppins', sans-serif", color: "#0F172A" }}
+            >
+              Trippy
+            </span>
+          </div>
+          <p className="text-xs" style={{ color: "#94A3B8" }}>
+            mishty@arc &copy; {new Date().getFullYear()} · AI-powered travel planning
+          </p>
         </footer>
       )}
     </>

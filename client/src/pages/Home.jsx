@@ -5,17 +5,14 @@ import DestinationCarousel from "../components/DestinationCarousel";
 
 const Home = ({ setTrips, refetchTrips }) => {
   return (
-    <div className="bg-gray-100 min-h-screen">
-      {/* HERO */}
+    <main style={{ background: "#F8FAFC" }}>
+      {/* Hero */}
       <Hero />
-      {/*Destination carousel */}
+      {/* Destination Carousel */}
       <DestinationCarousel />
-
-      {/* FORM SECTION */}
-      <div id="plan" className="py-10">
-        <TripForm setTrips={setTrips} refetchTrips={refetchTrips} />
-      </div>
-    </div>
+      {/* AI Trip Planner Form */}
+      <TripForm setTrips={setTrips} refetchTrips={refetchTrips} />
+    </main>
   );
 };
 
