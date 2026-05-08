@@ -166,7 +166,7 @@ User interests: ${interests}.
 `;
 
         const model = genAI.getGenerativeModel({
-          model: "gemini-3.1-pro-preview",
+          model: "gemini-3.1-flash-lite",
         });
 
         const result = await model.generateContent(prompt);
