@@ -94,16 +94,16 @@ const TripForm = ({ setTrips, refetchTrips }) => {
         localStorage.setItem("trips_backup", JSON.stringify(updatedTrips));
         return updatedTrips;
       });
+// Refetch trips to keep App.jsx trips state in sync
+if (refetchTrips) {
+  refetchTrips();
+}
 
-      // Refetch trips to keep App.jsx trips state in sync
-      if (refetchTrips) {
-        refetchTrips();
-      }
-
-      const message = savedToMongoDB
-        ? "Saved in My Trips"
-        : "Trip saved locally (offline mode) 💾";
-      alert(message);
+alert(
+  savedToMongoDB
+    ? "Trip saved to MongoDB Atlas 💾"
+    : "Trip saved locally 💾"
+);
     }
   };
 
