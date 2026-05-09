@@ -1,7 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
+import gsap from "gsap";
 
 const Hero = () => {
+  useEffect(() => {
+    gsap.from(".hero-tagline", {
+      yPercent: 100,
+      stagger: 0.3,
+      duration: 0.3,
+    })
+  }, [])
   return (
     <section
       className="relative overflow-hidden"
@@ -62,9 +70,9 @@ const Hero = () => {
                 letterSpacing: "-0.03em",
               }}
             >
-              Plan your perfect
+              <span className="hero-tagline inline-block overflow-hidden">Plan your perfect</span>
               <br />
-              <span className="gradient-text">trip with AI.</span>
+              <span className="hero-tagline gradient-text inline-block overflow-hidden">trip with AI.</span>
             </h1>
 
             {/* Sub-text */}

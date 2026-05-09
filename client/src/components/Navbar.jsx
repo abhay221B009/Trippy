@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import gsap from "gsap";
 
 const Navbar = () => {
   const { token, logout } = useAuth();
@@ -149,16 +150,35 @@ const Navbar = () => {
 
 const NavLink = ({ to, label, current }) => {
   const isActive = current === to;
+
+  const onMouseEnter = () => {
+    gsap.from(".active-line", {
+      scaleX: 0,
+      transformOrigin: "left",
+      duration: 0.3,
+      ease: "circ.inOut"
+    })
+  }
+
+  const onMouseLeave = () => {
+    gsap.killTweensOf(".active-line")
+    gsap.to(".active-line", {
+      scaleX: 1,
+    })
+  }
+
   return (
     <Link
       to={to}
       className={`text-sm font-semibold transition-all duration-200 relative py-1 ${
         isActive ? "text-blue-600" : "text-slate-500 hover:text-slate-900"
       }`}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {label}
       {isActive && (
-        <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-blue-500 rounded-full" />
+        <span className="active-line absolute -bottom-0.5 left-0 right-0 h-0.5 bg-blue-500 rounded-full" />
       )}
     </Link>
   );

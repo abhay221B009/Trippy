@@ -7,8 +7,11 @@ import TripDetails from "./pages/TripDetails";
 import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
 import { useAuth } from "./context/AuthContext";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const App = () => {
+  gsap.registerPlugin(ScrollTrigger);
   const [trips, setTrips] = useState([]);
   const { token, API_URL, loading: authLoading } = useAuth();
   const location = useLocation();
